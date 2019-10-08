@@ -43,7 +43,7 @@ class ArgumentParser {
      * wishes to see how to use the program by specifying the -h flag.
      */
     private void displayHelp() {
-        System.out.println("USAGE - WIP");
+        System.out.println("USAGE - java LargestArea <num_points> <side> <seed>");
         System.exit(0);
     }
 }

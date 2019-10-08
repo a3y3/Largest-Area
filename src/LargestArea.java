@@ -6,11 +6,11 @@ public class LargestArea {
     int side;
     int seed;
     boolean verboseOutputs;
+
     public static void main(String[] args) {
-        RandomPoints r = new RandomPoints(100, 100, 142857);
-        while (r.hasNext()){
-            Point p = r.next();
-            System.out.println(p.getX() + ", " + p.getY());
-        }
+        LargestArea largestArea = new LargestArea();
+        new ArgumentParser(largestArea).parseArguments(args);
+        RandomPoints r = new RandomPoints(largestArea.numPoints, largestArea.side,
+                largestArea.seed);
     }
 }
