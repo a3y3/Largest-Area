@@ -10,7 +10,6 @@ public class LargestArea {
     public static void main(String[] args) {
         LargestArea largestArea = new LargestArea();
         new ArgumentParser(largestArea).parseArguments(args);
-        System.out.println("Initialized with n = " + largestArea.numPoints + " side" + largestArea.side + " seed" + largestArea.seed);
         RandomPoints r = new RandomPoints(largestArea.numPoints, largestArea.side,
                 largestArea.seed);
         Point[] points = largestArea.getPoints(r);
@@ -38,11 +37,7 @@ public class LargestArea {
                 for (int k = j + 1; k < points.length; k++) {
                     Point p3 = points[k];
 
-                    double a = getLength(p1, p2);
-                    double b = getLength(p2, p3);
-                    double c = getLength(p3, p1);
-                    double S = getS(a, b, c);
-                    double area = getArea(S, a, b, c);
+                    double area = getArea(p1, p2, p3);
                     if (area > maxArea) {
                         maxArea = area;
                         maxPoints[0] = p1;
@@ -81,11 +76,43 @@ public class LargestArea {
         return (a + b + c) / 2.0;
     }
 
-    private double getArea(double S, double a, double b, double c) {
+    /**
+     * Calculates area according to the formula area = S(S-a)(S-b)(S-c) ^ 0.5
+     *
+     * @param S (a+b+c)/2 as calculated by {@code getS()}
+     * @param a length of side 1
+     * @param b length of side 2
+     * @param c length of side 3
+     * @return the calculated area
+     */
+    private double calculateArea(double S, double a, double b, double c) {
         double area = S * (S - a) * (S - b) * (S - c);
         return Math.sqrt(area);
     }
 
+    /**
+     * Calls {@code getLength()} and {@code getS()} to find {@code a, b, c, S} and
+     * returns the value calculated by {@code calculateArea()}.
+     *
+     * @param p1 Point p1
+     * @param p2 Point p2
+     * @param p3 Point p3
+     * @return the area of the triangle formed by points {@code p1, p2, p3}.
+     */
+    private double getArea(Point p1, Point p2, Point p3) {
+        double a = getLength(p1, p2);
+        double b = getLength(p2, p3);
+        double c = getLength(p3, p1);
+        double S = getS(a, b, c);
+
+        return calculateArea(S, a, b, c);
+    }
+
+    /**
+     * Prints the x and y coordinate of a variable number of Points.
+     *
+     * @param points variable number of points that are to be printed.
+     */
     private void printPoints(Point... points) {
         for (Point p : points) {
             System.out.print("Point: " + p.getX() + ", " + p.getY() + ";\t");
