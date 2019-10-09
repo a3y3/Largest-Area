@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 /**
  * @author Soham Dongargaonkar [sd4324] on 07/10/19
  */
@@ -38,7 +40,15 @@ public class LargestArea {
                     Point p3 = points[k];
 
                     double area = getArea(p1, p2, p3);
-                    if (area > maxArea) {
+                    if (area >= maxArea) {
+                        if (area == maxArea) {
+                            int[] oldIndices = new int[3];
+                            System.arraycopy(maxIndices, 0, oldIndices, 0, 3);
+                            int[] newIndices = new int[]{i, j, k};
+                            if (!replaceWithNewerPoints(oldIndices, newIndices)) {
+                                continue;
+                            }
+                        }
                         maxArea = area;
                         maxPoints[0] = p1;
                         maxIndices[0] = i;
@@ -58,6 +68,20 @@ public class LargestArea {
                     p.getY());
         }
         System.out.printf("%.5g%n", maxArea);
+    }
+
+    private boolean replaceWithNewerPoints(int[] oldIndices, int[] newIndices) {
+        Arrays.sort(oldIndices);
+        Arrays.sort(newIndices);
+
+        for (int i = 0; i < newIndices.length; i++) {
+            if (newIndices[i] < oldIndices[i]) {
+                return true;
+            } else if (newIndices[i] > oldIndices[i]) {
+                return false;
+            }
+        }
+        return false;
     }
 
     private double getLength(Point p1, Point p2) {
