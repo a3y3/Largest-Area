@@ -1,5 +1,3 @@
-package edu.rit.cs;
-
 import mpi.MPI;
 import mpi.MPIException;
 

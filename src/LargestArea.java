@@ -1,5 +1,8 @@
 import java.util.Arrays;
 
+import mpi.MPI;
+import mpi.MPIException;
+
 /**
  * @author Soham Dongargaonkar [sd4324] on 07/10/19
  */
@@ -9,16 +12,48 @@ public class LargestArea {
     int seed;
     boolean verboseOutputs;
 
+    private static final String SEQ_MODE = "SEQUENTIAL";
+    private static final String PARALLEL_MODE = "PARALLEL";
+
     public static void main(String[] args) {
         LargestArea largestArea = new LargestArea();
         new ArgumentParser(largestArea).parseArguments(args);
-        RandomPoints r = new RandomPoints(largestArea.numPoints, largestArea.side,
-                largestArea.seed);
-        Point[] points = largestArea.getPoints(r);
-        largestArea.getLargestArea(points);
+        Point[] points = largestArea.getPoints();
+
+        System.out.println("*** STARTING SERIAL EXECUTION ***");
+        largestArea.runProgram(SEQ_MODE, points);
+        System.out.println();
+        System.out.println("*** STARTING PARALLEL EXECUTION ***");
+        largestArea.runProgram(PARALLEL_MODE, points);
     }
 
-    private Point[] getPoints(RandomPoints r) {
+    /**
+     * Runs either the sequential or the parallel version depending on the {@code mode}
+     * passed.
+     *
+     * @param mode   either sequential or parallel. The appropriate version of the
+     *               program is called depending upon this value.
+     * @param points The array of points for which the largest area is to be found.
+     */
+    private void runProgram(String mode, Point[] points) {
+        long startTime = System.nanoTime();
+        if (mode.equals(SEQ_MODE)) {
+            getLargestAreaSeq(points);
+        } else {
+            try {
+                getLargestAreaParallel(points);
+            } catch (MPIException m) {
+                System.err.println("MPIException occured while executing " +
+                        "getLargestAreaParallel: " + m);
+            }
+        }
+        long endTime = System.nanoTime();
+        long elapsedTime = endTime - startTime;
+        System.out.println("Time taken for execution:" + elapsedTime / 1000000 + " ms");
+    }
+
+    private Point[] getPoints() {
+        RandomPoints r = new RandomPoints(numPoints, side, seed);
         Point[] points = new Point[numPoints];
         int i = 0;
         while (r.hasNext()) {
@@ -27,7 +62,58 @@ public class LargestArea {
         return points;
     }
 
-    private void getLargestArea(Point[] points) {
+    private void getLargestAreaParallel(Point[] points) throws MPIException {
+        double maxArea = Integer.MIN_VALUE;
+        int[] maxIndices = new int[3];
+        Point[] maxPoints = new Point[3];
+
+        String[] args = new String[10];
+        MPI.Init(args);
+
+        int rank = MPI.COMM_WORLD.getRank(), size = MPI.COMM_WORLD.getSize();
+
+        for (int i = points.length / size * rank; i < points.length / size * rank - 3; i++) {
+            Point p1 = points[i];
+            for (int j = i + 1; j < points.length - 1; j++) {
+                Point p2 = points[j];
+                for (int k = j + 1; k < points.length; k++) {
+                    Point p3 = points[k];
+
+                    double area = getArea(p1, p2, p3);
+                    if (area >= maxArea) {
+                        if (area == maxArea) {
+                            int[] oldIndices = new int[3];
+                            System.arraycopy(maxIndices, 0, oldIndices, 0, 3);
+                            int[] newIndices = new int[]{i, j, k};
+                            if (!replaceWithNewerPoints(oldIndices, newIndices)) {
+                                continue;
+                            }
+                        }
+                        maxArea = area;
+                        maxPoints[0] = p1;
+                        maxIndices[0] = i;
+
+                        maxPoints[1] = p2;
+                        maxIndices[1] = j;
+
+                        maxPoints[2] = p3;
+                        maxIndices[2] = k;
+                    }
+                }
+            }
+        }
+        MPI.Finalize();
+        int indexCounter = 0;
+        for (Point p : maxPoints) {
+            System.out.printf("%d %.5g %.5g%n", maxIndices[indexCounter++], p.getX(),
+                    p.getY());
+        }
+        System.out.printf("%.5g%n", maxArea);
+
+
+    }
+
+    private void getLargestAreaSeq(Point[] points) {
         double maxArea = Integer.MIN_VALUE;
         int[] maxIndices = new int[3];
         Point[] maxPoints = new Point[3];
