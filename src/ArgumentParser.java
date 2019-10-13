@@ -1,5 +1,5 @@
 /**
- * Parses arguments passed in String args[] and modifies the passed LargestArea's
+ * Parses arguments passed in String args[] and modifies the passed LargestAreaSeq's
  * instance variables accordingly.
  *
  * @author Soham Dongargaonkar [sd4324] on 10/07/2019
@@ -43,7 +43,7 @@ class ArgumentParser {
      * wishes to see how to use the program by specifying the -h flag.
      */
     private void displayHelp() {
-        System.out.println("USAGE - java LargestArea <num_points> <side> <seed>");
+        System.out.println("USAGE - java LargestAreaSeq <num_points> <side> <seed>");
         System.exit(0);
     }
 }
