@@ -39,7 +39,7 @@ public class ArrayAddition {
                     comm.send(subArray, subArrayLength, MPI.INT, rankCounter++, 0);
                     if (rankCounter >= worldSize) {
                         //Master will finish up the remaining elements
-                        remainingElementsIndex = i;
+                        remainingElementsIndex = i + 1;
                         break;
                     }
 
