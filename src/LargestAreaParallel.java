@@ -5,25 +5,40 @@ import mpi.*;
  */
 public class LargestAreaParallel extends LargestArea {
     private int subArrayLength;
-    private Comm comm = MPI.COMM_WORLD;
-    private int rank = comm.getRank();
-    private int worldSize = comm.getSize();
+    private Comm comm;
+    private int rank;
+    private int worldSize;
+
+    private LargestAreaParallel(){
+        try {
+            comm = MPI.COMM_WORLD;
+            rank = comm.getRank();
+            worldSize = comm.getSize();
+        }catch (MPIException m){
+            System.err.println("MPIException in constructor. Exiting..." + m);
+            System.exit(1);
+        }
+    }
 
     private final static int TAG_TYPE_POINTS = 0;
     private final static int TAG_TYPE_RESULT = 1;
 
     public static void main(String[] args) {
-        MPI.Init(args);
+        try {
+            MPI.Init(args);
 
-        LargestAreaParallel largestAreaParallel = new LargestAreaParallel();
-        new ArgumentParser(largestAreaParallel).parseArguments(args);
-        Point[] points = largestAreaParallel.getPoints();
-        if (largestAreaParallel.rank == 0) {
-            System.out.println("*** STARTING PARALLEL EXECUTION ***");
-            largestAreaParallel.runProgram(points);
-        } else {
-            AreaResultHolder partialResult = largestAreaParallel.getLargestArea(points);
-            largestAreaParallel.sendResultToMaster(partialResult);
+            LargestAreaParallel largestAreaParallel = new LargestAreaParallel();
+            new ArgumentParser(largestAreaParallel).parseArguments(args);
+            Point[] points = largestAreaParallel.getPoints();
+            if (largestAreaParallel.rank == 0) {
+                System.out.println("*** STARTING PARALLEL EXECUTION ***");
+                largestAreaParallel.runProgram(points);
+            } else {
+                AreaResultHolder partialResult = largestAreaParallel.getLargestArea(points);
+                largestAreaParallel.sendResultToMaster(partialResult);
+            }
+        }catch (MPIException m){
+            System.err.println("MPI Exception occurred: " + m);
         }
     }
 
@@ -34,7 +49,7 @@ public class LargestAreaParallel extends LargestArea {
      * @param points the points for which the area is to be found.
      */
     @Override
-    public AreaResultHolder getLargestArea(Point[] points) {
+    public AreaResultHolder getLargestArea(Point[] points){
         if (rank != 0) {
             //Slave
             int numParts = points.length / worldSize;
@@ -60,7 +75,7 @@ public class LargestAreaParallel extends LargestArea {
         return worldSize * numParts;
     }
 
-    private AreaResultHolder[] getResults(Point[] points, int leftOverStartingIndex) {
+    private AreaResultHolder[] getResults(Point[] points, int leftOverStartingIndex){
         AreaResultHolder[] results = new AreaResultHolder[worldSize];
         int resultsCounter = 0;
         if (points != null) {
@@ -68,23 +83,31 @@ public class LargestAreaParallel extends LargestArea {
                     leftOverStartingIndex, points.length);
             results[resultsCounter++] = masterResult;
         }
-        for (int i = 1; i < worldSize; i++) {
-            double[] nodeResultArr = new double[AreaResultHolder.TOTAL_LENGTH];
-            comm.recv(nodeResultArr, AreaResultHolder.TOTAL_LENGTH, MPI.DOUBLE,
-                    MPI.ANY_SOURCE, TAG_TYPE_RESULT);
-            AreaResultHolder nodeResult = AreaResultHolder.getHolder(nodeResultArr);
-            if (verboseOutputs) {
-                System.out.println("MASTER: received result: ");
-                nodeResult.printMaxArea();
+        try {
+            for (int i = 1; i < worldSize; i++) {
+                double[] nodeResultArr = new double[AreaResultHolder.TOTAL_LENGTH];
+                comm.recv(nodeResultArr, AreaResultHolder.TOTAL_LENGTH, MPI.DOUBLE,
+                        MPI.ANY_SOURCE, TAG_TYPE_RESULT);
+                AreaResultHolder nodeResult = AreaResultHolder.getHolder(nodeResultArr);
+                if (verboseOutputs) {
+                    System.out.println("MASTER: received result: ");
+                    nodeResult.printMaxArea();
+                }
+                results[resultsCounter++] = nodeResult;
             }
-            results[resultsCounter++] = nodeResult;
+        }catch (MPIException m){
+            System.err.println("MPI Exception occurred: in getResults()" + m);
         }
         return results;
     }
 
     private void sendResultToMaster(AreaResultHolder partialResult) {
         double[] resultArray = partialResult.getArray();
-        comm.send(resultArray, resultArray.length, MPI.DOUBLE, 0, TAG_TYPE_RESULT);
+        try {
+            comm.send(resultArray, resultArray.length, MPI.DOUBLE, 0, TAG_TYPE_RESULT);
+        }catch (MPIException m){
+            System.err.println("MPI Exception occurred: " + m);
+        }
     }
 
     private AreaResultHolder getMaxResult(AreaResultHolder[] results) {
