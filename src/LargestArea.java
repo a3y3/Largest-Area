@@ -16,10 +16,11 @@ abstract class LargestArea implements LargestAreaInterface {
      */
     public void runProgram(Point[] points) {
         long startTime = System.nanoTime();
-        getLargestArea(points);
+        AreaResultHolder resultHolder = getLargestArea(points);
         long endTime = System.nanoTime();
 
         long elapsedTime = endTime - startTime;
+        resultHolder.printMaxArea();
         System.out.println("Time taken for execution: " + elapsedTime / 1000000 + " ms");
     }
 
@@ -114,27 +115,9 @@ abstract class LargestArea implements LargestAreaInterface {
     @Override
     public void printPoints(Point... points) {
         for (Point p : points) {
-            System.out.print("Point: " + p.getX() + ", " + p.getY() + ";\t");
+            System.out.print("Point: (" + p.getX() + ", " + p.getY() + ");\t");
         }
         System.out.println();
-    }
-
-    /**
-     * Prints the max area with a pre-specified format.
-     *
-     * @param maxPoints  An array of points of the triangle with the highest area
-     * @param maxIndices The corresponding indices of the points. The indices are for
-     *                   the Points[] array.
-     * @param maxArea    The value of the highest area.
-     */
-    @Override
-    public void printMaxArea(Point[] maxPoints, int[] maxIndices, double maxArea) {
-        int indexCounter = 0;
-        for (Point p : maxPoints) {
-            System.out.printf("%d %.5g %.5g%n", maxIndices[indexCounter++], p.getX(),
-                    p.getY());
-        }
-        System.out.printf("%.5g%n", maxArea);
     }
 
     /**

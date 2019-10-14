@@ -14,11 +14,12 @@ public class LargestAreaSeq extends LargestArea{
 
     /**
      * Fetch the largest area for these {@code points}. This class will get the largest
-     * are sequentially.
+     * area sequentially.
      *
      * @param points the points for which the area is to be found.
      */
-    public void getLargestArea(Point[] points) {
+    @Override
+    public AreaResultHolder getLargestArea(Point[] points) {
         double maxArea = Integer.MIN_VALUE;
         int[] maxIndices = new int[3];
         Point[] maxPoints = new Point[3];
@@ -53,6 +54,6 @@ public class LargestAreaSeq extends LargestArea{
                 }
             }
         }
-        printMaxArea(maxPoints, maxIndices, maxArea);
+        return new AreaResultHolder(maxPoints, maxIndices, maxArea);
     }
 }

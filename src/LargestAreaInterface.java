@@ -22,7 +22,7 @@ public interface LargestAreaInterface {
      *
      * @param points the points for which the area is to be found.
      */
-    void getLargestArea(Point[] points);
+    AreaResultHolder getLargestArea(Point[] points);
 
     /**
      * Get the Euclidean length between points p1 and p2.
@@ -71,14 +71,4 @@ public interface LargestAreaInterface {
      * @param points variable number of points that are to be printed.
      */
     void printPoints(Point... points);
-
-    /**
-     * Prints the max area with a pre-specified format.
-     *
-     * @param maxPoints  An array of points of the triangle with the highest area
-     * @param maxIndices The corresponding indices of the points. The indices are for
-     *                   the Points[] array.
-     * @param maxArea    The value of the highest area.
-     */
-    void printMaxArea(Point[] maxPoints, int[] maxIndices, double maxArea);
 }
