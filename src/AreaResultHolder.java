@@ -51,7 +51,7 @@ class AreaResultHolder {
     static AreaResultHolder getHolder(double[] arr) {
         Point[] points = new Point[POINTS_LENGTH];
         int pCounter = 0;
-        for (int d = POINTS_OFFSET; d < POINTS_OFFSET + POINTS_LENGTH * 3; d += 2) {
+        for (int d = POINTS_OFFSET; d < POINTS_OFFSET + POINTS_LENGTH * 2; d += 2) {
             double x = arr[d];
             double y = arr[d + 1];
             Point p = new Point(x, y);
