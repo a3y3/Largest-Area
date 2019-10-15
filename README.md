@@ -13,7 +13,7 @@ java LargestAreaSeq 3000 100 142857
 Time taken for execution: 49643 ms
 ```
 ### Parallel
-On a cluster of 3 nodes, the area is found 7 times faster:
+On a cluster of 3 nodes, **the area is found 7 times faster:**
 ```
 mpiexec --hostfile /usr/local/pub/ph/TardisCluster3Nodes.txt --prefix /usr/local java -cp /usr/local/pub/ph/mpi.jar LargestAreaParallel 3000 100 142857
 *** STARTING PARALLEL EXECUTION ***
