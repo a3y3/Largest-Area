@@ -37,10 +37,10 @@ public class LargestAreaParallel extends LargestArea {
                 AreaResultHolder partialResult = largestAreaParallel.getLargestArea(points);
                 largestAreaParallel.sendResultToMaster(partialResult);
             }
+            MPI.Finalize();
         } catch (MPIException m) {
             System.err.println("MPI Exception occurred: " + m);
         }
-        MPI.Finalize();
     }
 
     /**
