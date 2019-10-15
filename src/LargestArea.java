@@ -1,72 +1,42 @@
 import java.util.Arrays;
 
-//import mpi.MPI;
-//import mpi.MPIException;
-
 /**
- * @author Soham Dongargaonkar [sd4324] on 07/10/19
+ * @author Soham Dongargaonkar [sd4324] on 12/10/19
  */
-public class LargestArea {
+abstract class LargestArea implements LargestAreaInterface {
     int numPoints;
     int side;
     int seed;
     boolean verboseOutputs;
 
-    private static final String SEQ_MODE = "SEQUENTIAL";
-    private static final String PARALLEL_MODE = "PARALLEL";
+    /**
+     * Runs the program and calculates the time required to execute it.
+     *
+     * @param points The array of points for which the largest area is to be found.
+     */
+    public void runProgram(Point[] points) {
+        long startTime = System.nanoTime();
+        AreaResultHolder resultHolder = getLargestArea(points);
+        long endTime = System.nanoTime();
 
-    public static void main(String[] args) {
-        LargestArea largestArea = new LargestArea();
-        new ArgumentParser(largestArea).parseArguments(args);
-        Point[] points = largestArea.getPoints();
-
-        System.out.println("*** STARTING SERIAL EXECUTION ***");
-        largestArea.runProgram(SEQ_MODE, points);
-        System.out.println();
-        System.out.println("*** STARTING PARALLEL EXECUTION ***");
-        largestArea.runProgram(PARALLEL_MODE, points);
+        long elapsedTime = endTime - startTime;
+        resultHolder.printMaxArea();
+        System.out.println("Time taken for execution: " + elapsedTime / 1000000 + " ms");
     }
 
     /**
-     * Runs either the sequential or the parallel version depending on the {@code mode}
-     * passed.
+     * Fetch the largest area for these {@code points}. This class will get the largest
+     * area sequentially.
      *
-     * @param mode   either sequential or parallel. The appropriate version of the
-     *               program is called depending upon this value.
-     * @param points The array of points for which the largest area is to be found.
+     * @param points the points for which the area is to be found.
      */
-    private void runProgram(String mode, Point[] points) {
-        long startTime = System.nanoTime();
-        if (mode.equals(SEQ_MODE)) {
-            getLargestAreaSeq(points);
-        } else {
-            getLargestAreaParallel(points);
-        }
-        long endTime = System.nanoTime();
-        long elapsedTime = endTime - startTime;
-        System.out.println("Time taken for execution:" + elapsedTime / 1000000 + " ms");
-    }
-
-    private Point[] getPoints() {
-        RandomPoints r = new RandomPoints(numPoints, side, seed);
-        Point[] points = new Point[numPoints];
-        int i = 0;
-        while (r.hasNext()) {
-            points[i++] = r.next();
-        }
-        return points;
-    }
-
-    private void getLargestAreaParallel(Point[] points) {
-
-    }
-
-    private void getLargestAreaSeq(Point[] points) {
+    AreaResultHolder getLargestAreaSequentially(Point[] points, int startingIndex,
+                                                int endIndex) {
         double maxArea = Integer.MIN_VALUE;
         int[] maxIndices = new int[3];
         Point[] maxPoints = new Point[3];
 
-        for (int i = 0; i < points.length - 2; i++) {
+        for (int i = startingIndex; i < endIndex; i++) {
             Point p1 = points[i];
             for (int j = i + 1; j < points.length - 1; j++) {
                 Point p2 = points[j];
@@ -96,29 +66,34 @@ public class LargestArea {
                 }
             }
         }
-        int indexCounter = 0;
-        for (Point p : maxPoints) {
-            System.out.printf("%d %.5g %.5g%n", maxIndices[indexCounter++], p.getX(),
-                    p.getY());
-        }
-        System.out.printf("%.5g%n", maxArea);
+        return new AreaResultHolder(maxPoints, maxIndices, maxArea);
     }
 
-    private boolean replaceWithNewerPoints(int[] oldIndices, int[] newIndices) {
-        Arrays.sort(oldIndices);
-        Arrays.sort(newIndices);
-
-        for (int i = 0; i < newIndices.length; i++) {
-            if (newIndices[i] < oldIndices[i]) {
-                return true;
-            } else if (newIndices[i] > oldIndices[i]) {
-                return false;
-            }
+    /**
+     * Fetches a number of random points.
+     *
+     * @return an array of random points.
+     */
+    @Override
+    public Point[] getPoints() {
+        RandomPoints r = new RandomPoints(numPoints, side, seed);
+        Point[] points = new Point[numPoints];
+        int i = 0;
+        while (r.hasNext()) {
+            points[i++] = r.next();
         }
-        return false;
+        return points;
     }
 
-    private double getLength(Point p1, Point p2) {
+    /**
+     * Get the Euclidean length between points p1 and p2.
+     *
+     * @param p1 first point
+     * @param p2 second point
+     * @return the distance between them.
+     */
+    @Override
+    public double getLength(Point p1, Point p2) {
         double y2 = p2.getY();
         double x2 = p2.getX();
 
@@ -130,7 +105,16 @@ public class LargestArea {
         return distance;
     }
 
-    private double getS(double a, double b, double c) {
+    /**
+     * Calculates S using the formula S = (a + b + c) / 2.
+     *
+     * @param a length 1 of the triangle
+     * @param b length 2 of the triangle
+     * @param c length 3 of the triangle
+     * @return S for calculating the area.
+     */
+    @Override
+    public double getS(double a, double b, double c) {
         return (a + b + c) / 2.0;
     }
 
@@ -143,7 +127,8 @@ public class LargestArea {
      * @param c length of side 3
      * @return the calculated area
      */
-    private double calculateArea(double S, double a, double b, double c) {
+    @Override
+    public double calculateArea(double S, double a, double b, double c) {
         double area = S * (S - a) * (S - b) * (S - c);
         return Math.sqrt(area);
     }
@@ -157,7 +142,8 @@ public class LargestArea {
      * @param p3 Point p3
      * @return the area of the triangle formed by points {@code p1, p2, p3}.
      */
-    private double getArea(Point p1, Point p2, Point p3) {
+    @Override
+    public double getArea(Point p1, Point p2, Point p3) {
         double a = getLength(p1, p2);
         double b = getLength(p2, p3);
         double c = getLength(p3, p1);
@@ -171,10 +157,39 @@ public class LargestArea {
      *
      * @param points variable number of points that are to be printed.
      */
-    private void printPoints(Point... points) {
+    @Override
+    public void printPoints(Point... points) {
         for (Point p : points) {
-            System.out.print("Point: " + p.getX() + ", " + p.getY() + ";\t");
+            System.out.print("Point: (" + p.getX() + ", " + p.getY() + ");\t");
         }
         System.out.println();
+    }
+
+    /**
+     * According to the problem definition:
+     * If more than one triangle has the same largest area, the program must print the
+     * triangle with the smallest first index. If more than one triangle has the same
+     * largest area and smallest first index, the program must print the triangle with the
+     * smallest second index. If more than one triangle has the same largest area and
+     * smallest first index and smallest second index, the program must print the triangle
+     * with the smallest third index.
+     *
+     * @param oldIndices the array of the earlier highest area points.
+     * @param newIndices the array of the new points.
+     * @return true if the new indices (and the newer area) need to replace the old
+     * indices.
+     */
+    boolean replaceWithNewerPoints(int[] oldIndices, int[] newIndices) {
+        Arrays.sort(oldIndices);
+        Arrays.sort(newIndices);
+
+        for (int i = 0; i < newIndices.length; i++) {
+            if (newIndices[i] < oldIndices[i]) {
+                return true;
+            } else if (newIndices[i] > oldIndices[i]) {
+                return false;
+            }
+        }
+        return false;
     }
 }
