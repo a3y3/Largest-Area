@@ -1,4 +1,8 @@
 /**
+ * Holds the result of the execution of successfully finding the largest area and the
+ * corresponding highest points for a group of random points.
+ * Mainly used for ease of use for sending and receiving this data.
+ *
  * @author Soham Dongargaonkar [sd4324] on 14/10/19
  */
 class AreaResultHolder {
@@ -21,18 +25,33 @@ class AreaResultHolder {
         this.maxArea = maxArea;
     }
 
+    /**
+     * @return Gets the points for the largest area triangle.
+     */
     public Point[] getMaxPoints() {
         return maxPoints;
     }
 
+    /**
+     * @return Gets the indices for the largest area triangle.
+     */
     public int[] getMaxIndices() {
         return maxIndices;
     }
 
+    /**
+     * @return Gets the area of the largest triangle.
+     */
     public double getMaxArea() {
         return maxArea;
     }
 
+    /**
+     * Gets the array representation of this class. Used for sending() this to the
+     * master node.
+     *
+     * @return the double[] array representation of the fields of the class.
+     */
     double[] getArray() {
         int counter = 0;
         double[] arr = new double[TOTAL_LENGTH];
@@ -48,6 +67,13 @@ class AreaResultHolder {
         return arr;
     }
 
+    /**
+     * The opposite of {@code getArray()}. Given an array of points, develops an
+     * instance of this class and returns it.
+     *
+     * @param arr the array representation of the class.
+     * @return the instance formed from {@code arr}.
+     */
     static AreaResultHolder getHolder(double[] arr) {
         Point[] points = new Point[POINTS_LENGTH];
         int pCounter = 0;
